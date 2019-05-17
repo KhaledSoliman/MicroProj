@@ -1,102 +1,92 @@
+
+print("---------    MicroSim Project    --------")
+
 print(
     "Format of Input Boolean Expression :\n"
-    "~(~(A+B).C+~D)\n"
-    "~(SUM1 + SUM2)\n"
-    "\nSymbols : ~ (NOT), . (AND), + (OR)\n"
+    "'('(A+B)&C|'D)\n"
+    "'(SUM1 | SUM2)\n"
+    "\nSymbols : ' (NOT), & (AND), | (OR)\n"
 )
 
-__SYMBOLS__ = ['(', ')', '+', '.', '~', ' ']
+__SYMBOLS__ = ['(', ')', '|', '&', '\'', ' ']  # or=| and=& Not='
 
-__OP_PRECEDENCE__ = {'~': 3, '.': 2, '+': 1, '(': 0, ')': 0}
+__OP_PRECEDENCE__ = {'\'': 3, '&': 2, '|': 1, '(': 0, ')': 0}
 
 # read boolean expression
 print("Enter Boolean Expression")
-expr_string = input().strip()
+inputString = input().strip()
 
-# Step 1 : #parsing the user input by stripping each element alone in an array token
+
+# Step 1 : EXTRACT INDIVIDIAL TOKENS FROM expr_string BY PARSING
+# parsing the user input by stripping each element alone in an array token
 tokens = []
 substr_start = 0
 
-for char_index in range(len(expr_string)):
-
-    if expr_string[char_index] in __SYMBOLS__:
-
+for char_index in range(len(inputString)):
+    if inputString[char_index] in __SYMBOLS__:
         if substr_start < char_index:
-            tokens.append(expr_string[substr_start:char_index]) #appends expression into token
-
-        if expr_string[char_index] != ' ':
-            tokens.append(expr_string[char_index])
-
+            tokens.append(inputString[substr_start:char_index])
+        # if expr_string[char_index] != ' ':
+        # tokens.append(expr_string[char_index])
         substr_start = char_index + 1
 
-if substr_start < len(expr_string):
-    tokens.append(expr_string[substr_start:len(expr_string)])  #expression appended until the substring is equal to expression
+if substr_start < len(inputString):
+    tokens.append(inputString[substr_start:len(inputString)])
 
 # Step 2 : CONVERT TOKENS TO POSTFIX NOTATION
 operator_stack = []
 tokens_postfix = []
 
 for token_element in tokens:
-
     # classify as OPERATOR
     # this is the bonus feature for the parenthesis in the circuit
-    if token_element in __OP_PRECEDENCE__.keys():
-
-        if token_element == '(':
-            operator_stack.append(token_element)
-
-        elif token_element == ')':
-            while (operator_stack[-1] != '('):
-                tokens_postfix.append(operator_stack.pop())
-
+    if token_element in __OP_PRECEDENCE__.keys():  # change token_element to tokenElement
+        if token_element == '(':  # change token_element to tokenElement
+            operator_stack.append(token_element)  # change token_element to tokenElement
+        elif token_element == ')':  # change token_element to tokenElement
+            while operator_stack[-1] != '(':  # change operator_stack to stackOperator if there is no ( the last character in the expression then append as input variables
+                tokens_postfix.append(operator_stack.pop())  # change token_element to tokenElement
             # remove top-most '(' symbol
             operator_stack.pop()
-
         else:
-            while (len(operator_stack) != 0) and (operator_stack[-1] != '(') and (__OP_PRECEDENCE__[operator_stack[-1]] >= __OP_PRECEDENCE__[token_element]):
+            while (len(operator_stack) != 0) and (operator_stack[-1] != '(') and (__OP_PRECEDENCE__[operator_stack[-1]] >= __OP_PRECEDENCE__[token_element]):  # change token_element to tokenElement
                 tokens_postfix.append(operator_stack.pop())
-
-            operator_stack.append(token_element)
-
-    # identify as input variables
+            operator_stack.append(token_element)  # change token_element to tokenElement
+    # identify as INPUT VARIABLES
     else:
-        tokens_postfix.append(token_element)
+        tokens_postfix.append(token_element)  # change token_element to tokenElement
 
 while len(operator_stack) != 0:
     tokens_postfix.append(operator_stack.pop())
 
-# Step 3 : NOT (~) ELIMINATION FROM POSTFIX NMOS & PMOS
+# Step 3 : NOT (~) ELIMINATION FROM POSTFIX
+#	| --- For PMOS circuit
+#	| --- For NMOS circuit
 
 tokens_postfix_pmos = tokens_postfix.copy()
 
 # negate the nmos postfix expression
 tokens_postfix_nmos = tokens_postfix.copy()
-tokens_postfix_nmos.append('~')
+tokens_postfix_nmos.append("'")
 
 
 # --- start of helper function - INVERT --- #
 
 # NOTE : tokens_postfix original copy will be changed (Pass by Reference)
 def invert(tokens_postfix, invert_index):
-    # if token is a symbol
+    # if token element is a symbol
     if tokens_postfix[invert_index] not in __OP_PRECEDENCE__.keys():
-
         if tokens_postfix[invert_index][0] == '-':
             tokens_postfix[invert_index] = tokens_postfix[invert_index][1:]
-
         else:
             tokens_postfix[invert_index] = '-' + tokens_postfix[invert_index]
-
         return invert_index;
-
-    # if token is an OPERATOR (. or +)
+    # if token is an OPERATOR (. or +) & |
     else:
-
-        if tokens_postfix[invert_index] == '.':
-            tokens_postfix[invert_index] = '+'
-
-        elif tokens_postfix[invert_index] == '+':
-            tokens_postfix[invert_index] = '.';
+        if tokens_postfix[invert_index] == '&':
+            tokens_postfix[invert_index] = '|'
+        elif tokens_postfix[invert_index] == '|':
+            tokens_postfix[invert_index] = '&';
 
         chain_end = invert(tokens_postfix, invert_index - 1)
         return invert(tokens_postfix, chain_end - 1)
@@ -109,11 +99,9 @@ def invert(tokens_postfix, invert_index):
 token_index = 0
 
 while token_index < len(tokens_postfix_pmos):
-
-    if tokens_postfix_pmos[token_index] == '~':
+    if tokens_postfix_pmos[token_index] == "'":
         invert(tokens_postfix_pmos, token_index - 1)
         tokens_postfix_pmos.pop(token_index)
-
     else:
         token_index += 1
 
@@ -129,9 +117,11 @@ while token_index < len(tokens_postfix_nmos):
     else:
         token_index += 1
 
-# Step 4 : Postfix to TRANSISTOR NETLIST (NMOS PDN & PMOS PUN)
+# Step 4 : Postfix to TRANSISTOR NETLIST
+#	| --- Pull Down NMOS Network
+#	| --- Pull up PMOS Network
 
-#generating NMOS (Pull Down) transistor netlist and evaluation of the PDN
+# Step 4 (i) : generating NMOS (Pull Down) transistor netlist
 postfix_eval_stack_nmos = []
 nmos_index = 0
 # index of last intersection/junction
@@ -139,7 +129,7 @@ nmos_jn_index = 0
 
 for token in tokens_postfix_nmos:
 
-    if token not in ['.', '+']:
+    if token not in ['&', '|']:
 
         postfix_eval_stack_nmos.append(
             [{"name": ("NMOS" + str(nmos_index)), "source": nmos_jn_index, "drain": nmos_jn_index + 1, "gate": token}])
@@ -158,7 +148,7 @@ for token in tokens_postfix_nmos:
 
         postfix_eval_stack_nmos[-2].extend(postfix_eval_stack_nmos.pop(-1))
 
-    elif token == '+':
+    elif token == '|':
 
         old_source = postfix_eval_stack_nmos[-1][0]["source"]
         new_source = postfix_eval_stack_nmos[-2][0]["source"]
@@ -191,9 +181,9 @@ for transistor in postfix_eval_stack_nmos[0]:
 
 # print(postfix_eval_stack_nmos)
 
-#generating PMOS (Pull Up) transistor netlist and evaluation of the PUN
+# Step 4 (ii) : generating PMOS (Pull Up) transistor netlist
 
-#This function inverts input symbols
+# --- start - helper function - invert input symbol --- #
 def invert_input(token):
     if token[0] == '-':
         return token[1:]
@@ -201,7 +191,8 @@ def invert_input(token):
     else:
         return "-" + token
 
-# --- end of function
+
+# --- end - helper function - invert input symbol --- #
 
 
 postfix_eval_stack_pmos = []
@@ -219,7 +210,7 @@ for token in tokens_postfix_pmos:
         pmos_jn_index += 2
         pmos_index += 1
 
-    elif token == '.':
+    elif token == '&':
 
         old_source = postfix_eval_stack_pmos[-1][0]["source"]
         new_source = postfix_eval_stack_pmos[-2][-1]["drain"]
@@ -262,9 +253,9 @@ for transistor in postfix_eval_stack_pmos[0]:
 
 # print(postfix_eval_stack_pmos)
 
-input_symbols = set(tokens_postfix) - {'~', '.', '+'}
+input_symbols = set(tokens_postfix) - {"'", '&', '|'}
 print("\nInputs: ", end='')
-print(*input_symbols, sep=', ') #printing with seperator
+print(*input_symbols, sep=', ')
 
 print("No. of Transistors - PMOS : %d , NMOS : %d\n" % (pmos_index, nmos_index))
 
@@ -272,28 +263,16 @@ print("Transistor Netlist (NAME, SOURCE, DRAIN, GATE)\n")
 
 print("PULL UP NETWORK (PMOS)\n")
 for transistor in postfix_eval_stack_pmos[0]:
-    print(transistor["name"], transistor["source"], transistor["drain"], transistor["gate"], sep='\t') #printing with seperator
+    print(transistor["name"], transistor["source"], transistor["drain"], transistor["gate"], sep='\t')
 
 print("\nPULL DOWN NETWORK (NMOS)\n")
 for transistor in postfix_eval_stack_nmos[0]:
-    print(transistor["name"], transistor["source"], transistor["drain"], transistor["gate"], sep='\t') #printing with seperator
+    print(transistor["name"], transistor["source"], transistor["drain"], transistor["gate"], sep='\t')
 
-
+# ======================================================================================================== #
 
 print("\nPress any key to proceed to Simulation ...")
 input()
-
-"""
-Steps :
-1. Read input signal values
-	|--- Generate complement of input signal values
-2. Find all junctions/terminals short by simulating transistor behaviour
-	]--- PMOS Transistor Netlist
-	|--- NMOS Transistor Netlist
-3. Find presence of path from Power/Ground to OUTPUT
-	]--- PMOS Transistor Netlist
-	|--- NMOS Transistor Netlist
-"""
 
 # Step 1: Read input signal values
 
