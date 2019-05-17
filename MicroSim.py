@@ -1,4 +1,3 @@
-
 print("---------    MicroSim Project    --------")
 
 print(
@@ -8,53 +7,63 @@ print(
     "\nSymbols : ' (NOT), & (AND), | (OR)\n"
 )
 
-__SYMBOLS__ = ['(', ')', '|', '&', '\'', ' ']  # or=| and=& Not='
+__SYMBOLS__ = ['(', ')', '|', '&', "'", ' '] #or=| and=& Not='
 
-__OP_PRECEDENCE__ = {'\'': 3, '&': 2, '|': 1, '(': 0, ')': 0}
+__OP_PRECEDENCE__ = {"'": 3, '&': 2, '|': 1, '(': 0, ')': 0}
 
 # read boolean expression
 print("Enter Boolean Expression")
-inputString = input().strip()
-
+expr_string = input().strip()
 
 # Step 1 : EXTRACT INDIVIDIAL TOKENS FROM expr_string BY PARSING
-# parsing the user input by stripping each element alone in an array token
+#parsing the user input by stripping each element alone in an array token
 tokens = []
 substr_start = 0
 
-for char_index in range(len(inputString)):
-    if inputString[char_index] in __SYMBOLS__:
+for char_index in range(len(expr_string)):
+
+    if expr_string[char_index] in __SYMBOLS__:
+
         if substr_start < char_index:
-            tokens.append(inputString[substr_start:char_index])
-        # if expr_string[char_index] != ' ':
-        # tokens.append(expr_string[char_index])
+            tokens.append(expr_string[substr_start:char_index])
+
+        #if expr_string[char_index] != ' ':
+            #tokens.append(expr_string[char_index])
+
         substr_start = char_index + 1
 
-if substr_start < len(inputString):
-    tokens.append(inputString[substr_start:len(inputString)])
+if substr_start < len(expr_string):
+    tokens.append(expr_string[substr_start:len(expr_string)])
 
 # Step 2 : CONVERT TOKENS TO POSTFIX NOTATION
 operator_stack = []
 tokens_postfix = []
 
 for token_element in tokens:
+
     # classify as OPERATOR
-    # this is the bonus feature for the parenthesis in the circuit
-    if token_element in __OP_PRECEDENCE__.keys():  # change token_element to tokenElement
-        if token_element == '(':  # change token_element to tokenElement
-            operator_stack.append(token_element)  # change token_element to tokenElement
-        elif token_element == ')':  # change token_element to tokenElement
-            while operator_stack[-1] != '(':  # change operator_stack to stackOperator if there is no ( the last character in the expression then append as input variables
-                tokens_postfix.append(operator_stack.pop())  # change token_element to tokenElement
+    #this is the bonus feature for the parenthesis in the circuit
+    if token_element in __OP_PRECEDENCE__.keys():  #change token_element to tokenElement
+
+        if token_element == '(':    #change token_element to tokenElement
+            operator_stack.append(token_element) #change token_element to tokenElement
+
+        elif token_element == ')': #change token_element to tokenElement
+            while (operator_stack[-1] != '('): #change operator_stack to stackOperator if there is no ( the last character in the expression then append as input variables
+                tokens_postfix.append(operator_stack.pop()) #change token_element to tokenElement
+
             # remove top-most '(' symbol
             operator_stack.pop()
+
         else:
-            while (len(operator_stack) != 0) and (operator_stack[-1] != '(') and (__OP_PRECEDENCE__[operator_stack[-1]] >= __OP_PRECEDENCE__[token_element]):  # change token_element to tokenElement
+            while (len(operator_stack) != 0) and (operator_stack[-1] != '(') and (__OP_PRECEDENCE__[operator_stack[-1]] >= __OP_PRECEDENCE__[token_element]):  #change token_element to tokenElement
                 tokens_postfix.append(operator_stack.pop())
-            operator_stack.append(token_element)  # change token_element to tokenElement
+
+            operator_stack.append(token_element) #change token_element to tokenElement
+
     # identify as INPUT VARIABLES
     else:
-        tokens_postfix.append(token_element)  # change token_element to tokenElement
+        tokens_postfix.append(token_element) #change token_element to tokenElement
 
 while len(operator_stack) != 0:
     tokens_postfix.append(operator_stack.pop())
@@ -76,15 +85,21 @@ tokens_postfix_nmos.append("'")
 def invert(tokens_postfix, invert_index):
     # if token element is a symbol
     if tokens_postfix[invert_index] not in __OP_PRECEDENCE__.keys():
+
         if tokens_postfix[invert_index][0] == '-':
             tokens_postfix[invert_index] = tokens_postfix[invert_index][1:]
+
         else:
             tokens_postfix[invert_index] = '-' + tokens_postfix[invert_index]
+
         return invert_index;
+
     # if token is an OPERATOR (. or +) & |
     else:
+
         if tokens_postfix[invert_index] == '&':
             tokens_postfix[invert_index] = '|'
+
         elif tokens_postfix[invert_index] == '|':
             tokens_postfix[invert_index] = '&';
 
@@ -99,9 +114,11 @@ def invert(tokens_postfix, invert_index):
 token_index = 0
 
 while token_index < len(tokens_postfix_pmos):
+
     if tokens_postfix_pmos[token_index] == "'":
         invert(tokens_postfix_pmos, token_index - 1)
         tokens_postfix_pmos.pop(token_index)
+
     else:
         token_index += 1
 
@@ -315,7 +332,7 @@ while continue_simulation:
 
     nmos_output = "Z"
 
-    # loop to check for no further elements are still available which means that there is ground and circuit ends
+    #loop to check for no further elements are still available which means that there is ground and circuit ends
     while len(initial_gnd_short) != 0:
 
         transistive_gnd_short = []
